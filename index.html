@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Cadastre turmas e alunos e registre a presença em cada aula.">
+  <title>Lista de Chamada Improclube</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta name="app-version" content="github-login-3">
+  <link rel="stylesheet" href="styles.css?v=github-login-3">
+  <script src="config.js?v=github-login-3" defer></script>
+  <script src="github-storage.js?v=github-login-3" defer></script>
+  <script src="storage.js?v=github-login-3" defer></script>
+  <script src="app.js?v=github-login-3" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="./" aria-label="Lista de Chamada Improclube"><span class="brand-icon" aria-hidden="true">✓</span><span class="brand-name">IMPROCLUBE<small>Lista de Chamada</small></span></a>
+    <p class="sidebar-label">SALA DO PROFESSOR</p>
+    <nav aria-label="Menu principal">
+      <button class="nav-item active" data-view="attendance"><span aria-hidden="true">☑</span> Lista de chamada</button>
+      <button class="nav-item" data-view="classes"><span aria-hidden="true">▦</span> Turmas e alunos</button>
+      <button class="nav-item" data-view="history"><span aria-hidden="true">◷</span> Histórico de aulas</button>
+    </nav>
+    <div class="sidebar-footer"><div class="teacher-avatar">P</div><div><strong>Área do professor</strong><small id="account-label">Organize suas aulas</small><button id="logout" class="text-button" hidden>Sair da conta</button></div></div>
+  </aside>
+  <main>
+    <header class="topbar"><span>IMPROCLUBE · ÁREA DO PROFESSOR</span><span id="today-label"></span></header>
+    <div class="workspace">
+      <section id="attendance" class="view">
+        <div class="page-heading"><div><p class="eyebrow">CADA ALUNO CONTA</p><h1>Lista de Chamada Improclube</h1><p>Escolha a turma, abra a aula e marque quem veio.</p></div></div>
+        <div class="card setup"><div class="card-heading"><span class="step">01</span><div><h2>Abra uma aula</h2><p>Uma turma e uma data. Tudo pronto para começar.</p></div></div>
+          <form id="lesson-form" class="form-row"><label>Turma<select id="lesson-class" required><option value="">Selecione uma turma</option></select></label><label>Data da aula<input id="lesson-date" type="date" required></label><button class="button primary" id="open-lesson">Abrir aula</button></form>
+        </div>
+        <div id="attendance-area"></div>
+      </section>
+      <section id="classes" class="view" hidden>
+        <div class="page-heading"><div><p class="eyebrow">SUA COMUNIDADE</p><h1>Turmas e alunos</h1><p>Cadastre cada aluno na turma em que ele estuda.</p></div></div>
+        <div class="management-grid"><div class="card"><h2>Nova turma</h2><form id="class-form" class="stack"><label>Nome da turma<input id="class-name" maxlength="80" placeholder="Ex.: 8º ano A" required></label><button class="button primary">Cadastrar turma</button></form></div>
+        <div class="card"><h2>Novo aluno</h2><form id="student-form" class="stack"><label>Nome completo<input id="student-name" maxlength="120" placeholder="Ex.: Maria Oliveira" required></label><label>Turma<select id="student-class" required></select></label><button class="button primary">Cadastrar aluno</button></form></div></div>
+        <div id="class-list"></div>
+      </section>
+      <section id="history" class="view" hidden>
+        <div class="page-heading"><div><p class="eyebrow">AULA POR AULA</p><h1>Histórico de aulas</h1><p>Consulte as presenças e faltas das chamadas salvas.</p></div></div>
+        <div class="card history-search"><h2>Pesquisar aula por data</h2><form id="history-search-form" class="form-row"><label>Data da aula<input id="history-date" type="date" required></label><button class="button primary">Pesquisar aulas</button><button type="button" class="button secondary" id="clear-history-search">Ver todas as aulas</button></form></div>
+        <p id="history-search-summary" role="status" class="history-summary"></p>
+        <div id="history-list"></div>
+      </section>
+      <footer class="workspace-footer"><span id="storage-note"></span><div id="backup-actions" hidden><button class="text-button" id="migrate-local" hidden>Importar dados deste navegador</button><button class="text-button" id="export-data">Baixar backup</button><label class="text-button import-label">Restaurar backup<input id="import-data" type="file" accept="application/json,.json" hidden></label><button id="logout-mobile" class="text-button" hidden>Sair da conta</button></div></footer>
+    </div>
+  </main>
+  <div id="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="login-dialog" aria-labelledby="login-title"><div class="login-brand">IMPROCLUBE</div><h2 id="login-title">Conectar ao GitHub</h2><p>Informe sua credencial para acessar as turmas e chamadas compartilhadas.</p><form id="login-form" class="stack"><label>Token de acesso ao GitHub<input id="github-token" type="password" autocomplete="off" spellcheck="false" required aria-describedby="login-help"></label><p id="login-error" role="alert"></p><button class="button primary">Conectar</button></form><p id="login-help" class="login-help">Use um token válido com permissão de leitura e escrita no repositório de dados. Não é a senha da sua conta GitHub. O token fica somente na memória desta página.</p></dialog>
+  <dialog id="confirm-dialog"><form method="dialog"><h2 id="confirm-title">Confirmar alteração</h2><p id="confirm-message"></p><div class="dialog-actions"><button value="cancel" class="button secondary">Cancelar</button><button value="confirm" class="button primary">Confirmar</button></div></form></dialog>
+</body>
+</html>
