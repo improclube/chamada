@@ -11,10 +11,21 @@ let busy = false;
 let toastTimer;
 let storage;
 let historyDate = '';
+let classQuery = '';
 function toast(message) { $('#toast').textContent = message; $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').hidden = true, 4500); }
 function confirmAction(message) { return new Promise(resolve => { const dialog = $('#confirm-dialog'); $('#confirm-message').textContent = message; dialog.returnValue = 'cancel'; dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), {once:true}); dialog.showModal(); }); }
 async function commit(next) { if (busy) return false; busy = true; try { await storage.save(next); state = next; return true; } catch(error) { toast(error.message || 'Não foi possível salvar. Tente novamente.'); return false; } finally { busy = false; } }
 function sortedClasses() { return [...state.classes].sort((a,b)=>a.name.trim().localeCompare(b.name.trim(),'pt-BR',{sensitivity:'base',numeric:true})); }
+function normalizeSearch(value) { return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').trim(); }
+function setupClassSearch() {
+  if($('#class-search'))return;
+  const panel=document.createElement('div');panel.className='card';panel.style.marginTop='24px';
+  panel.innerHTML='<form id="class-search-form" class="form-row"><label>Pesquisar turma<input id="class-search" type="search" placeholder="Digite o nome da turma" autocomplete="off" aria-controls="class-list"></label><button id="clear-class-search" type="button" class="button secondary">Ver todas as turmas</button></form><p id="class-search-status" role="status" aria-live="polite" style="margin-top:16px;font-size:.875rem"></p>';
+  $('#class-list').before(panel);
+  $('#class-search-form').addEventListener('submit',event=>event.preventDefault());
+  $('#class-search').addEventListener('input',event=>{classQuery=event.target.value;renderClasses();});
+  $('#clear-class-search').addEventListener('click',()=>{classQuery='';$('#class-search').value='';renderClasses();$('#class-search').focus();});
+}
 function classOptions() { return '<option value="">Selecione uma turma</option>' + sortedClasses().map(c => `<option value="${c.id}">${escapeHTML(c.name)}</option>`).join(''); }
 function updateSelects() { for (const id of ['lesson-class','student-class']) { const select = $(`#${id}`); const selected = select.value; select.innerHTML = classOptions(); select.value = selected; } }
 function empty(title, message, action = '') { return `<div class="empty"><div class="empty-icon" aria-hidden="true">☑</div><h2>${title}</h2><p>${message}</p>${action}</div>`; }
@@ -30,6 +41,10 @@ function renderAttendance() {
   <div class="save-row"><p>Desmarque quem faltou e salve a chamada.</p><button class="button primary" id="save-lesson" ${!lesson.roster.length ? 'disabled' : ''}>Salvar chamada</button></div></div>`;
 }
 function renderClasses() {
+  const visibleClasses=sortedClasses().filter(c=>normalizeSearch(c.name).includes(normalizeSearch(classQuery)));
+  const searchStatus=$('#class-search-status');
+  if(searchStatus)searchStatus.textContent=classQuery.trim()?`${visibleClasses.length} ${visibleClasses.length===1?'turma encontrada':'turmas encontradas'}`:`${state.classes.length} ${state.classes.length===1?'turma cadastrada':'turmas cadastradas'}`;
+  if(state.classes.length&&!visibleClasses.length){$('#class-list').innerHTML=empty('Nenhuma turma encontrada','Tente outro nome ou clique em Ver todas as turmas.');return;}
   $('#class-list').innerHTML = state.classes.length ? state.classes.map(c => { const students = state.students.filter(s=>s.classId===c.id).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')); return `<div class="card class-card"><div class="class-title"><h2>${escapeHTML(c.name)} <span class="pill">${students.length} alunos</span></h2><button class="text-button" data-delete-class="${c.id}">Excluir turma</button></div>${students.length ? students.map(s => `<div class="student-chip"><span>${escapeHTML(s.name)}</span><button class="text-button" data-delete-student="${s.id}" aria-label="Excluir ${escapeHTML(s.name)}">Excluir</button></div>`).join('') : '<p>Nenhum aluno cadastrado nesta turma.</p>'}</div>`; }).join('') : empty('Nenhuma turma cadastrada','Dê um nome à sua primeira turma no formulário acima.');
 }
 function renderHistory() {
@@ -80,7 +95,7 @@ $('#student-form').addEventListener('submit', async event => { event.preventDefa
 window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
 $('#lesson-date').value=today(); $('#today-label').textContent=new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});
 async function initialize() {
-  try { storage = await createStorage(); state = await storage.load(); render(); registerTools(); }
+  try { setupClassSearch(); storage = await createStorage(); state = await storage.load(); render(); registerTools(); }
   catch(error) { $('#attendance-area').innerHTML=empty('Não foi possível carregar os dados',escapeHTML(error.message || 'Verifique a conexão e recarregue a página. Seus cadastros não foram substituídos.')); toast(error.message); document.querySelectorAll('form button').forEach(b=>b.disabled=true); }
 }
 initialize();
