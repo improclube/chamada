@@ -14,7 +14,7 @@ let historyDate = '';
 function toast(message) { $('#toast').textContent = message; $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').hidden = true, 4500); }
 function confirmAction(message) { return new Promise(resolve => { const dialog = $('#confirm-dialog'); $('#confirm-message').textContent = message; dialog.returnValue = 'cancel'; dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), {once:true}); dialog.showModal(); }); }
 async function commit(next) { if (busy) return false; busy = true; try { await storage.save(next); state = next; return true; } catch(error) { toast(error.message || 'Não foi possível salvar. Tente novamente.'); return false; } finally { busy = false; } }
-function sortedClasses() { return [...state.classes].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR',{sensitivity:'base',numeric:true})); }
+function sortedClasses() { return [...state.classes].sort((a,b)=>a.name.trim().localeCompare(b.name.trim(),'pt-BR',{sensitivity:'base',numeric:true})); }
 function classOptions() { return '<option value="">Selecione uma turma</option>' + sortedClasses().map(c => `<option value="${c.id}">${escapeHTML(c.name)}</option>`).join(''); }
 function updateSelects() { for (const id of ['lesson-class','student-class']) { const select = $(`#${id}`); const selected = select.value; select.innerHTML = classOptions(); select.value = selected; } }
 function empty(title, message, action = '') { return `<div class="empty"><div class="empty-icon" aria-hidden="true">☑</div><h2>${title}</h2><p>${message}</p>${action}</div>`; }
