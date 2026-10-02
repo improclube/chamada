@@ -1,0 +1,10 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync('outputs/lista-de-chamada/app.js','utf8');
+const classes=['FIP 5','FIP 4','FIP 6','FIP 7','ImproIniciantes Julia Set/26','ImproIniciantes Leo Set/26','ImproIniciantes Will Out/26','ImproIniciantes Nohan Ago/26','ImproIniciantes Nohan Out/26'].map((name,i)=>({id:'c'+i,name}));
+const expected=['FIP 4','FIP 5','FIP 6','FIP 7','ImproIniciantes Julia Set/26','ImproIniciantes Leo Set/26','ImproIniciantes Nohan Ago/26','ImproIniciantes Nohan Out/26','ImproIniciantes Will Out/26'];
+const list={innerHTML:''};const context=vm.createContext({document:{querySelector:s=>s==='#class-list'?list:null},classes,structuredClone,Date});
+vm.runInContext(source.slice(0,source.indexOf("document.addEventListener('click'")),context);
+vm.runInContext('state={classes,students:[],lessons:[]}; renderClasses();',context);
+const options=vm.runInContext('classOptions()',context);const optionNames=[...options.matchAll(/<option value="c\d+">([^<]+)<\/option>/g)].map(m=>m[1]);assert.deepEqual(optionNames,expected);
+const cardNames=[...list.innerHTML.matchAll(/<h2>([^<]+) <span/g)].map(m=>m[1]);assert.deepEqual(cardNames,expected);assert.deepEqual(classes.map(c=>c.name),['FIP 5','FIP 4','FIP 6','FIP 7','ImproIniciantes Julia Set/26','ImproIniciantes Leo Set/26','ImproIniciantes Will Out/26','ImproIniciantes Nohan Ago/26','ImproIniciantes Nohan Out/26']);
+console.log('PASS: seleção de turma e cartões em ordem alfabética com os nomes das imagens; dados originais preservados.');
