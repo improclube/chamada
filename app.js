@@ -1,4 +1,5 @@
 'use strict';
+// Versão busca-turmas-11: renderiza somente as turmas que correspondem à pesquisa.
 const $ = (selector) => document.querySelector(selector);
 const escapeHTML = (value) => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
@@ -53,8 +54,6 @@ function renderClasses() {
     const studentRows=students.length?students.map(s=>`<div class="student-chip"><span>${escapeHTML(s.name)}</span><button class="text-button" data-delete-student="${s.id}" aria-label="Excluir ${escapeHTML(s.name)}">Excluir</button></div>`).join(''):'<p>Nenhum aluno cadastrado nesta turma.</p>';
     return `<div class="card class-card"><div class="class-title"><h2>${escapeHTML(c.name)} <span class="pill">${students.length} alunos</span></h2><button class="text-button" data-delete-class="${c.id}">Excluir turma</button></div>${studentRows}</div>`;
   }).join('');
-  if(state.classes.length&&!visibleClasses.length){$('#class-list').innerHTML=empty('Nenhuma turma encontrada','Tente outro nome ou clique em Ver todas as turmas.');return;}
-  $('#class-list').innerHTML = state.classes.length ? state.classes.map(c => { const students = state.students.filter(s=>s.classId===c.id).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')); return `<div class="card class-card"><div class="class-title"><h2>${escapeHTML(c.name)} <span class="pill">${students.length} alunos</span></h2><button class="text-button" data-delete-class="${c.id}">Excluir turma</button></div>${students.length ? students.map(s => `<div class="student-chip"><span>${escapeHTML(s.name)}</span><button class="text-button" data-delete-student="${s.id}" aria-label="Excluir ${escapeHTML(s.name)}">Excluir</button></div>`).join('') : '<p>Nenhum aluno cadastrado nesta turma.</p>'}</div>`; }).join('') : empty('Nenhuma turma cadastrada','Dê um nome à sua primeira turma no formulário acima.');
 }
 function renderHistory() {
   const lessons = state.lessons.filter(l => !historyDate || l.date === historyDate);
