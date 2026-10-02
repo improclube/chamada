@@ -26,7 +26,7 @@ function renderAttendance() {
   <div class="table-head"><span></span><span>ALUNO</span><span>PRESENÇA</span></div>
   ${lesson.roster.map(student => { const checked = lesson.present.includes(student.id); const initials = student.name.trim().split(/\s+/).slice(0,2).map(n=>n[0]).join('').toUpperCase(); return `<div class="student-row"><div class="avatar" aria-hidden="true">${escapeHTML(initials)}</div><span class="student-name">${escapeHTML(student.name)}</span><label class="presence-toggle"><input type="checkbox" data-student="${student.id}" ${checked ? 'checked' : ''} aria-label="Presença de ${escapeHTML(student.name)}"><span>${checked ? 'Presente' : 'Ausente'}</span></label></div>`; }).join('')}
   ${!lesson.roster.length ? empty('Esta turma ainda não tem alunos','Cadastre alunos em Turmas e alunos e abra a aula novamente.') : ''}
-  <div class="save-row"><p>Quem não estiver marcado será registrado como ausente.</p><button class="button primary" id="save-lesson" ${!lesson.roster.length ? 'disabled' : ''}>Salvar chamada</button></div></div>`;
+  <div class="save-row"><p>Desmarque quem faltou e salve a chamada.</p><button class="button primary" id="save-lesson" ${!lesson.roster.length ? 'disabled' : ''}>Salvar chamada</button></div></div>`;
 }
 function renderClasses() {
   $('#class-list').innerHTML = state.classes.length ? state.classes.map(c => { const students = state.students.filter(s=>s.classId===c.id).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')); return `<div class="card class-card"><div class="class-title"><h2>${escapeHTML(c.name)} <span class="pill">${students.length} alunos</span></h2><button class="text-button" data-delete-class="${c.id}">Excluir turma</button></div>${students.length ? students.map(s => `<div class="student-chip"><span>${escapeHTML(s.name)}</span><button class="text-button" data-delete-student="${s.id}" aria-label="Excluir ${escapeHTML(s.name)}">Excluir</button></div>`).join('') : '<p>Nenhum aluno cadastrado nesta turma.</p>'}</div>`; }).join('') : empty('Nenhuma turma cadastrada','Dê um nome à sua primeira turma no formulário acima.');
@@ -42,7 +42,8 @@ async function openLesson(classId,date) {
   if (dirty && !await confirmAction('Há alterações não salvas nesta chamada. Deseja descartá-las e abrir outra aula?')) return;
   const c = state.classes.find(c=>c.id===classId); if (!c) return toast('Selecione uma turma válida.');
   const saved = state.lessons.find(l=>l.classId===classId && l.date===date);
-  lesson = saved ? structuredClone(saved) : {id:uid(),classId,className:c.name,date,roster:state.students.filter(s=>s.classId===classId).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(s=>({id:s.id,name:s.name})),present:[],updatedAt:new Date().toISOString()};
+  const roster = state.students.filter(s=>s.classId===classId).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(s=>({id:s.id,name:s.name}));
+  lesson = saved ? structuredClone(saved) : {id:uid(),classId,className:c.name,date,roster,present:roster.map(s=>s.id),updatedAt:new Date().toISOString()};
   dirty = false; renderAttendance();
 }
 document.addEventListener('click', async event => {
