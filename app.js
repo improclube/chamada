@@ -41,9 +41,18 @@ function renderAttendance() {
   <div class="save-row"><p>Desmarque quem faltou e salve a chamada.</p><button class="button primary" id="save-lesson" ${!lesson.roster.length ? 'disabled' : ''}>Salvar chamada</button></div></div>`;
 }
 function renderClasses() {
-  const visibleClasses=sortedClasses().filter(c=>normalizeSearch(c.name).includes(normalizeSearch(classQuery)));
+  const query=normalizeSearch(classQuery);
+  const visibleClasses=sortedClasses().filter(c=>normalizeSearch(c.name).includes(query));
+  const list=$('#class-list');
   const searchStatus=$('#class-search-status');
-  if(searchStatus)searchStatus.textContent=classQuery.trim()?`${visibleClasses.length} ${visibleClasses.length===1?'turma encontrada':'turmas encontradas'}`:`${state.classes.length} ${state.classes.length===1?'turma cadastrada':'turmas cadastradas'}`;
+  if(searchStatus)searchStatus.textContent=query?`${visibleClasses.length} ${visibleClasses.length===1?'turma encontrada':'turmas encontradas'}`:`${state.classes.length} ${state.classes.length===1?'turma cadastrada':'turmas cadastradas'}`;
+  if(!state.classes.length){list.innerHTML=empty('Nenhuma turma cadastrada','Dê um nome à sua primeira turma no formulário acima.');return;}
+  if(!visibleClasses.length){list.innerHTML=empty('Nenhuma turma encontrada','Tente outro nome ou clique em Ver todas as turmas.');return;}
+  list.innerHTML=visibleClasses.map(c=>{
+    const students=state.students.filter(s=>s.classId===c.id).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+    const studentRows=students.length?students.map(s=>`<div class="student-chip"><span>${escapeHTML(s.name)}</span><button class="text-button" data-delete-student="${s.id}" aria-label="Excluir ${escapeHTML(s.name)}">Excluir</button></div>`).join(''):'<p>Nenhum aluno cadastrado nesta turma.</p>';
+    return `<div class="card class-card"><div class="class-title"><h2>${escapeHTML(c.name)} <span class="pill">${students.length} alunos</span></h2><button class="text-button" data-delete-class="${c.id}">Excluir turma</button></div>${studentRows}</div>`;
+  }).join('');
   if(state.classes.length&&!visibleClasses.length){$('#class-list').innerHTML=empty('Nenhuma turma encontrada','Tente outro nome ou clique em Ver todas as turmas.');return;}
   $('#class-list').innerHTML = state.classes.length ? state.classes.map(c => { const students = state.students.filter(s=>s.classId===c.id).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')); return `<div class="card class-card"><div class="class-title"><h2>${escapeHTML(c.name)} <span class="pill">${students.length} alunos</span></h2><button class="text-button" data-delete-class="${c.id}">Excluir turma</button></div>${students.length ? students.map(s => `<div class="student-chip"><span>${escapeHTML(s.name)}</span><button class="text-button" data-delete-student="${s.id}" aria-label="Excluir ${escapeHTML(s.name)}">Excluir</button></div>`).join('') : '<p>Nenhum aluno cadastrado nesta turma.</p>'}</div>`; }).join('') : empty('Nenhuma turma cadastrada','Dê um nome à sua primeira turma no formulário acima.');
 }
