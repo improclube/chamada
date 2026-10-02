@@ -38,7 +38,7 @@ async function createGitHubStorage() {
     if(saving)throw new Error('Aguarde o salvamento anterior terminar.');validateState(data);const text=JSON.stringify(data,null,2);if(new TextEncoder().encode(text).length>900*1024)throw new Error('O arquivo atingiu o limite de 900 KB desta versão. Faça um backup e solicite uma divisão do arquivo por turma/ano.');saving=true;
     try{const current=await api(endpoint+`?ref=${encodeURIComponent(config.githubBranch)}`);if(current.sha!==sha)throw new Error('Outro professor atualizou os registros. Baixe um backup e recarregue antes de continuar.');const result=await api(endpoint,'PUT',{message:'Atualizar registros de chamada Improclube',content:encode(text),sha,branch:config.githubBranch});if(!result.content?.sha)throw new Error('Resposta inesperada do GitHub. Recarregue a página para conferir se a alteração foi salva.');sha=result.content.sha;}finally{saving=false;}
   }};
-  $('#storage-note').textContent=`Dados compartilhados no GitHub: ${config.githubRepo}/${config.githubFile}. Recarregue para ver alterações de outros professores.`;
+  $('#storage-note').textContent=`Recarregue para ver alterações de outros professores.`;
   $('#account-label').textContent='Conectado ao GitHub';
   async function logout(){if(busy)return toast('Aguarde o salvamento terminar.');if(dirty&&!await confirmAction('Descartar as alterações não salvas e desconectar?'))return;token='';location.reload();}
   for(const id of ['logout','logout-mobile']){$(`#${id}`).hidden=false;$(`#${id}`).textContent='Desconectar';$(`#${id}`).addEventListener('click',logout);}
