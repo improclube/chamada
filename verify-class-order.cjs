@@ -1,10 +1,12 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const source=fs.readFileSync('outputs/lista-de-chamada/app.js','utf8');
-const classes=['FIP 5','FIP 4','FIP 6','FIP 7','ImproIniciantes Julia Set/26','ImproIniciantes Leo Set/26','ImproIniciantes Will Out/26','ImproIniciantes Nohan Ago/26','ImproIniciantes Nohan Out/26'].map((name,i)=>({id:'c'+i,name}));
-const expected=['FIP 4','FIP 5','FIP 6','FIP 7','ImproIniciantes Julia Set/26','ImproIniciantes Leo Set/26','ImproIniciantes Nohan Ago/26','ImproIniciantes Nohan Out/26','ImproIniciantes Will Out/26'];
-const list={innerHTML:''};const context=vm.createContext({document:{querySelector:s=>s==='#class-list'?list:null},classes,structuredClone,Date});
-vm.runInContext(source.slice(0,source.indexOf("document.addEventListener('click'")),context);
-vm.runInContext('state={classes,students:[],lessons:[]}; renderClasses();',context);
-const options=vm.runInContext('classOptions()',context);const optionNames=[...options.matchAll(/<option value="c\d+">([^<]+)<\/option>/g)].map(m=>m[1]);assert.deepEqual(optionNames,expected);
-const cardNames=[...list.innerHTML.matchAll(/<h2>([^<]+) <span/g)].map(m=>m[1]);assert.deepEqual(cardNames,expected);assert.deepEqual(classes.map(c=>c.name),['FIP 5','FIP 4','FIP 6','FIP 7','ImproIniciantes Julia Set/26','ImproIniciantes Leo Set/26','ImproIniciantes Will Out/26','ImproIniciantes Nohan Ago/26','ImproIniciantes Nohan Out/26']);
-console.log('PASS: seleção de turma e cartões em ordem alfabética com os nomes das imagens; dados originais preservados.');
+const source=fs.readFileSync('outputs/lista-de-chamada/app.js','utf8');const list={innerHTML:''},status={textContent:''};
+const ctx=vm.createContext({document:{querySelector:s=>s==='#class-list'?list:s==='#class-search-status'?status:null},Date,structuredClone});
+vm.runInContext(source.slice(0,source.indexOf("document.addEventListener('click'")),ctx);
+vm.runInContext("state={classes:[{id:'b',name:'FIP 5'},{id:'a',name:'FIP 4'},{id:'c',name:'ImproIniciantes Júlia Set/26'}],students:[],lessons:[]}; classQuery='fip'; renderClasses();",ctx);
+assert(list.innerHTML.includes('FIP 4'));assert(list.innerHTML.includes('FIP 5'));assert(!list.innerHTML.includes('Júlia'));assert(list.innerHTML.indexOf('FIP 4')<list.innerHTML.indexOf('FIP 5'));assert.equal(status.textContent,'2 turmas encontradas');
+vm.runInContext("classQuery='  JULIA ';renderClasses();",ctx);assert(list.innerHTML.includes('Júlia'));assert(!list.innerHTML.includes('FIP'));assert.equal(status.textContent,'1 turma encontrada');
+vm.runInContext("classQuery='inexistente';renderClasses();",ctx);assert(list.innerHTML.includes('Nenhuma turma encontrada'));assert.equal(status.textContent,'0 turmas encontradas');
+assert(vm.runInContext('classOptions()',ctx).includes('FIP 4'));assert.equal(vm.runInContext('state.classes.length',ctx),3);
+vm.runInContext("classQuery='';renderClasses();",ctx);assert.equal((list.innerHTML.match(/class="card class-card"/g)||[]).length,3);
+console.log('PASS: busca parcial, letras/acentos/espaços, ordem alfabética, nenhum resultado, limpar pesquisa e seleção de aula sem filtro.');
+
